@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RipeSense™ — Fruit Ripeness Scanner</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --green-deep: #1B4332;
+    --green-mid: #2D6A4F;
+    --green-light: #52B788;
+    --gold: #C9A84C;
+    --gold-light: #E9C46A;
+    --cream: #F8F6F0;
+    --black: #0A0A0A;
+    --gray: #6B7280;
+    --gray-light: #F3F4F6;
+    --white: #FFFFFF;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--black);
+    color: var(--cream);
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 3rem;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(201,168,76,0.15);
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .nav-logo-icon {
+    width: 32px; height: 32px;
+    background: var(--green-mid);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .nav-brand {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 1.4rem; letter-spacing: 0.02em;
+  }
+  .nav-brand span { color: var(--gold); }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    color: rgba(248,246,240,0.7); text-decoration: none;
+    font-size: 0.85rem; font-weight: 500; letter-spacing: 0.05em;
+    text-transform: uppercase; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--gold); }
+  .nav-cta {
+    background: var(--gold); color: var(--black);
+    border: none; padding: 0.55rem 1.4rem;
+    font-family: 'Inter', sans-serif; font-weight: 600;
+    font-size: 0.8rem; letter-spacing: 0.06em;
+    text-transform: uppercase; cursor: pointer; border-radius: 3px;
+    transition: background 0.2s;
+    text-decoration: none;
+  }
+  .nav-cta:hover { background: var(--gold-light); }
+
+  /* ── HERO ── */
+  #hero {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0A0A0A 0%, #0d2618 50%, #0A0A0A 100%);
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden; padding-top: 80px;
+  }
+
+  .hero-grid-bg {
+    position: absolute; inset: 0; opacity: 0.04;
+    background-image: linear-gradient(var(--green-light) 1px, transparent 1px),
+      linear-gradient(90deg, var(--green-light) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .hero-glow {
+    position: absolute; width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(27,67,50,0.5) 0%, transparent 70%);
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative; z-index: 2;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 5rem; align-items: center; max-width: 1200px;
+    width: 100%; padding: 0 3rem;
+  }
+
+  .hero-eyebrow {
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--gold);
+    margin-bottom: 1.2rem;
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .hero-eyebrow::before {
+    content: ''; display: block; width: 32px; height: 1px; background: var(--gold);
+  }
+
+  h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: clamp(3rem, 5vw, 5.5rem);
+    line-height: 0.95; letter-spacing: -0.01em;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+  }
+  h1 em { font-style: normal; color: var(--green-light); }
+
+  .hero-tagline {
+    font-size: 1.05rem; color: rgba(248,246,240,0.65);
+    font-weight: 300; line-height: 1.7; margin-bottom: 2.5rem;
+    max-width: 440px;
+  }
+
+  .hero-actions { display: flex; gap: 1rem; align-items: center; }
+  .btn-primary {
+    background: var(--gold); color: var(--black);
+    padding: 0.85rem 2rem; border: none; border-radius: 3px;
+    font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em;
+    text-transform: uppercase; cursor: pointer; transition: all 0.2s;
+    text-decoration: none; display: inline-block;
+  }
+  .btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .btn-outline {
+    border: 1px solid rgba(248,246,240,0.25); color: var(--cream);
+    background: transparent; padding: 0.85rem 2rem; border-radius: 3px;
+    font-weight: 500; font-size: 0.85rem; letter-spacing: 0.08em;
+    text-transform: uppercase; cursor: pointer; transition: all 0.2s;
+    text-decoration: none; display: inline-block;
+  }
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+  .hero-badges {
+    display: flex; gap: 0.6rem; margin-top: 2rem; flex-wrap: wrap;
+  }
+  .badge {
+    font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 0.35rem 0.9rem;
+    border: 1px solid rgba(82,183,136,0.3);
+    color: var(--green-light); border-radius: 2px;
+  }
+
+  /* Scanner visual */
+  .hero-visual {
+    display: flex; justify-content: center; align-items: center;
+    position: relative;
+  }
+  .scanner-frame {
+    width: 300px; height: 420px;
+    background: linear-gradient(180deg, #1a1a1a 0%, #111 100%);
+    border-radius: 16px 16px 8px 8px;
+    border: 1px solid rgba(82,183,136,0.2);
+    position: relative;
+    box-shadow: 0 0 80px rgba(27,67,50,0.4), 0 40px 80px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+  .scanner-screen {
+    width: 220px; margin: 16px auto 0;
+    height: 140px;
+    background: #0d1f15;
+    border-radius: 8px;
+    border: 1px solid rgba(82,183,136,0.3);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; padding: 12px;
+  }
+  .scanner-screen-logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 1.1rem; color: var(--cream);
+    letter-spacing: 0.05em;
+  }
+  .scanner-screen-logo span { color: var(--green-light); }
+  .scanner-readout {
+    display: flex; gap: 8px;
+  }
+  .dot-un { width: 22px; height: 22px; border-radius: 50%; background: #22c55e; }
+  .dot-rd { width: 22px; height: 22px; border-radius: 50%; background: #eab308; }
+  .dot-sr { width: 22px; height: 22px; border-radius: 50%; background: #f97316; }
+  .dot-ov { width: 22px; height: 22px; border-radius: 50%; background: #ef4444; }
+
+  .scanner-bay {
+    width: 220px; margin: 14px auto;
+    height: 120px;
+    background: #050e09;
+    border-radius: 8px;
+    border: 2px solid rgba(82,183,136,0.4);
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .scan-line {
+    position: absolute; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--green-light), transparent);
+    animation: scanMove 2.5s ease-in-out infinite;
+    box-shadow: 0 0 8px var(--green-light);
+  }
+  @keyframes scanMove {
+    0% { top: 10px; opacity: 0; }
+    15% { opacity: 1; }
+    85% { opacity: 1; }
+    100% { top: calc(100% - 10px); opacity: 0; }
+  }
+  .bay-fruit { font-size: 2.5rem; }
+
+  .scanner-led-ring {
+    width: 240px; height: 10px;
+    background: linear-gradient(90deg, transparent, rgba(82,183,136,0.6), var(--green-light), rgba(82,183,136,0.6), transparent);
+    margin: 0 auto;
+    border-radius: 5px;
+    box-shadow: 0 0 15px var(--green-light);
+    animation: ledPulse 2.5s ease-in-out infinite;
+  }
+  @keyframes ledPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  .scanner-stand {
+    width: 60px; height: 80px;
+    background: linear-gradient(180deg, #1a1a1a 0%, #111 100%);
+    margin: 0 auto;
+    border: 1px solid rgba(82,183,136,0.1);
+  }
+  .scanner-base {
+    width: 200px; height: 18px;
+    background: linear-gradient(180deg, #222 0%, #111 100%);
+    margin: 0 auto; border-radius: 4px;
+    border: 1px solid rgba(82,183,136,0.1);
+  }
+
+  .hero-stat {
+    position: absolute;
+    background: rgba(27,67,50,0.9);
+    border: 1px solid rgba(82,183,136,0.3);
+    padding: 0.7rem 1.1rem; border-radius: 8px;
+    backdrop-filter: blur(8px);
+  }
+  .hero-stat-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 1.5rem; color: var(--green-light);
+  }
+  .hero-stat-label { font-size: 0.65rem; color: rgba(248,246,240,0.6); letter-spacing: 0.1em; text-transform: uppercase; }
+  .stat-1 { top: 10%; right: -10%; }
+  .stat-2 { bottom: 20%; left: -12%; }
+
+  /* ── SECTION BASE ── */
+  section { padding: 7rem 3rem; }
+  .section-inner { max-width: 1200px; margin: 0 auto; }
+
+  .section-eyebrow {
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--gold);
+    margin-bottom: 1rem;
+  }
+  h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: clamp(2.2rem, 4vw, 3.5rem);
+    line-height: 1; text-transform: uppercase; letter-spacing: -0.01em;
+  }
+  h2 em { font-style: normal; color: var(--green-light); }
+
+  /* ── HOW IT WORKS ── */
+  #how { background: #0d0d0d; }
+  .how-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 1.5px; margin-top: 4rem;
+    background: rgba(82,183,136,0.1);
+    border: 1px solid rgba(82,183,136,0.1);
+    border-radius: 4px; overflow: hidden;
+  }
+  .how-step {
+    background: #0A0A0A; padding: 2.5rem 2rem;
+    position: relative; overflow: hidden;
+    transition: background 0.3s;
+  }
+  .how-step:hover { background: #0d1f15; }
+  .step-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: 5rem; line-height: 1;
+    color: rgba(82,183,136,0.07); position: absolute; top: 1rem; right: 1rem;
+  }
+  .step-icon { font-size: 2rem; margin-bottom: 1.2rem; }
+  .step-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 1.3rem; letter-spacing: 0.03em;
+    text-transform: uppercase; color: var(--cream);
+    margin-bottom: 0.75rem;
+  }
+  .step-desc { font-size: 0.88rem; color: rgba(248,246,240,0.55); line-height: 1.6; }
+
+  /* Results bar */
+  .results-row {
+    display: grid; grid-template-columns: repeat(4,1fr);
+    gap: 1rem; margin-top: 3rem;
+  }
+  .result-card {
+    padding: 1.5rem; border-radius: 6px;
+    border-left: 4px solid;
+    background: rgba(255,255,255,0.03);
+  }
+  .result-card.unripe { border-color: #22c55e; }
+  .result-card.ready { border-color: #eab308; }
+  .result-card.soft { border-color: #f97316; }
+  .result-card.overripe { border-color: #ef4444; }
+  .result-dot { width: 14px; height: 14px; border-radius: 50%; margin-bottom: 0.75rem; }
+  .unripe .result-dot { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+  .ready .result-dot { background: #eab308; box-shadow: 0 0 8px #eab308; }
+  .soft .result-dot { background: #f97316; box-shadow: 0 0 8px #f97316; }
+  .overripe .result-dot { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+  .result-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em;
+    margin-bottom: 0.3rem;
+  }
+  .result-desc { font-size: 0.8rem; color: rgba(248,246,240,0.5); }
+
+  /* ── ABOUT ── */
+  #about { background: var(--black); }
+  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6rem; align-items: center; margin-top: 4rem; }
+  .values-list { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.75rem; }
+  .value-item {
+    display: flex; align-items: center; gap: 1rem;
+    font-size: 0.9rem; color: rgba(248,246,240,0.7); font-weight: 500;
+    padding: 0.75rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .value-bullet { width: 6px; height: 6px; background: var(--gold); border-radius: 50%; flex-shrink: 0; }
+  .mission-block {
+    background: linear-gradient(135deg, rgba(27,67,50,0.3), rgba(27,67,50,0.1));
+    border: 1px solid rgba(82,183,136,0.2);
+    padding: 2.5rem; border-radius: 8px; margin-bottom: 2rem;
+  }
+  .mission-label {
+    font-size: 0.68rem; font-weight: 600; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--green-light); margin-bottom: 0.75rem;
+  }
+  .mission-text {
+    font-size: 1.1rem; line-height: 1.65; color: var(--cream);
+    font-style: italic; font-weight: 300;
+  }
+
+  /* Team */
+  .team-grid {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 1px; background: rgba(82,183,136,0.1);
+    border: 1px solid rgba(82,183,136,0.1); border-radius: 4px; overflow: hidden;
+    margin-top: 2rem;
+  }
+  .team-card {
+    background: #0A0A0A; padding: 1.8rem 1.5rem;
+    transition: background 0.3s;
+  }
+  .team-card:hover { background: #0d1f15; }
+  .team-initial {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--green-deep), var(--green-mid));
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 1.1rem;
+    color: var(--cream); margin-bottom: 1rem;
+    border: 1px solid rgba(82,183,136,0.3);
+  }
+  .team-name {
+    font-weight: 600; font-size: 0.92rem; color: var(--cream); margin-bottom: 0.25rem;
+  }
+  .team-role { font-size: 0.72rem; color: var(--gold); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  /* ── PRODUCT ── */
+  #product { background: #060606; }
+  .product-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start; margin-top: 4rem; }
+  .product-price-block {
+    background: linear-gradient(135deg, rgba(201,168,76,0.1), rgba(201,168,76,0.05));
+    border: 1px solid rgba(201,168,76,0.3);
+    padding: 2rem; border-radius: 8px; margin-bottom: 2rem;
+  }
+  .price-label { font-size: 0.68rem; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 0.5rem; }
+  .price-main {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: 3.5rem; color: var(--cream);
+  }
+  .price-sub { font-size: 0.78rem; color: rgba(248,246,240,0.45); margin-top: 0.5rem; line-height: 1.5; }
+
+  /* Specs table */
+  .specs-table { margin-top: 2rem; }
+  .spec-row {
+    display: grid; grid-template-columns: 1fr 2fr;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    gap: 1rem;
+  }
+  .spec-key { font-size: 0.72rem; color: var(--gold); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+  .spec-val { font-size: 0.85rem; color: rgba(248,246,240,0.7); }
+
+  /* Scanner 3D-ish */
+  .product-visual {
+    display: flex; justify-content: center; align-items: flex-start;
+    padding-top: 1rem;
+  }
+  .scanner-large {
+    width: 240px;
+    position: relative;
+  }
+  .scanner-large-body {
+    width: 240px; height: 340px;
+    background: linear-gradient(180deg, #1e1e1e 0%, #141414 100%);
+    border-radius: 12px 12px 4px 4px;
+    border: 1px solid rgba(82,183,136,0.2);
+    box-shadow: 0 0 60px rgba(27,67,50,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+    display: flex; flex-direction: column; align-items: center; padding-top: 16px; gap: 12px;
+  }
+  .scanner-large-screen {
+    width: 185px; height: 115px;
+    background: #0d1f15; border-radius: 6px;
+    border: 1px solid rgba(82,183,136,0.25);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  }
+  .sl-brand {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 0.95rem;
+    color: var(--cream);
+  }
+  .sl-brand span { color: var(--green-light); }
+  .sl-sub { font-size: 0.55rem; letter-spacing: 0.15em; color: rgba(248,246,240,0.4); text-transform: uppercase; }
+  .sl-result {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);
+    padding: 4px 10px; border-radius: 3px;
+  }
+  .sl-result-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 6px #22c55e; }
+  .sl-result-text { font-size: 0.65rem; color: #22c55e; font-weight: 600; letter-spacing: 0.1em; }
+  .scanner-large-bay {
+    width: 185px; height: 100px;
+    background: #050e09; border-radius: 6px;
+    border: 2px solid rgba(82,183,136,0.35);
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+  }
+  .scan-line-lg {
+    position: absolute; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--green-light), transparent);
+    animation: scanMove 2.5s ease-in-out infinite;
+    box-shadow: 0 0 8px var(--green-light);
+  }
+  .scanner-large-led {
+    width: 200px; height: 8px;
+    background: linear-gradient(90deg, transparent, rgba(82,183,136,0.5), var(--green-light), rgba(82,183,136,0.5), transparent);
+    border-radius: 4px;
+    animation: ledPulse 2.5s ease-in-out infinite;
+    box-shadow: 0 0 10px var(--green-light);
+  }
+  .scanner-large-stand {
+    width: 50px; height: 70px;
+    background: linear-gradient(180deg, #1a1a1a, #111);
+    border-left: 1px solid rgba(255,255,255,0.04);
+    border-right: 1px solid rgba(255,255,255,0.04);
+  }
+  .scanner-large-base {
+    width: 200px; height: 16px;
+    background: linear-gradient(180deg, #222, #111);
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+
+  /* ── CHECKOUT ── */
+  #order { background: var(--black); }
+  .order-form {
+    max-width: 700px; margin: 3.5rem auto 0;
+    background: #0d0d0d; border: 1px solid rgba(82,183,136,0.15);
+    border-radius: 8px; overflow: hidden;
+  }
+  .form-header {
+    background: linear-gradient(135deg, var(--green-deep), var(--green-mid));
+    padding: 1.5rem 2.5rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .form-header-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 1.3rem; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .form-header-price { font-weight: 700; color: var(--gold-light); font-size: 1.1rem; }
+  .form-body { padding: 2.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+  .form-section-title {
+    font-size: 0.68rem; font-weight: 600; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--green-light); margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem; border-bottom: 1px solid rgba(82,183,136,0.15);
+  }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+  .form-group.full { grid-column: 1/-1; }
+  label { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(248,246,240,0.5); }
+  input, select, textarea {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+    color: var(--cream); padding: 0.75rem 1rem; border-radius: 4px;
+    font-family: 'Inter', sans-serif; font-size: 0.88rem;
+    transition: border-color 0.2s; outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--green-light); }
+  select option { background: #1a1a1a; }
+  .qty-input { width: 80px; }
+  textarea { resize: vertical; min-height: 80px; }
+  .form-submit {
+    background: var(--gold); color: var(--black);
+    border: none; padding: 1rem 2.5rem;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+    font-size: 1.1rem; letter-spacing: 0.08em;
+    text-transform: uppercase; cursor: pointer; border-radius: 4px;
+    transition: all 0.2s; width: 100%; margin-top: 0.5rem;
+  }
+  .form-submit:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .form-note { font-size: 0.72rem; color: rgba(248,246,240,0.35); text-align: center; margin-top: 0.5rem; }
+
+  /* ── FAQ ── */
+  #faq { background: #060606; }
+  .faq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 4rem; }
+  .faq-card {
+    background: #0A0A0A; border: 1px solid rgba(255,255,255,0.06);
+    padding: 2rem; border-radius: 6px; transition: border-color 0.3s;
+  }
+  .faq-card:hover { border-color: rgba(82,183,136,0.3); }
+  .faq-q {
+    font-weight: 600; font-size: 0.92rem; color: var(--cream);
+    margin-bottom: 0.85rem; line-height: 1.5;
+  }
+  .faq-a { font-size: 0.85rem; color: rgba(248,246,240,0.5); line-height: 1.7; }
+
+  /* ── CONTACT ── */
+  #contact {
+    background: linear-gradient(135deg, #0d2618 0%, #0A0A0A 100%);
+    text-align: center; padding: 6rem 3rem;
+    border-top: 1px solid rgba(82,183,136,0.15);
+  }
+  .contact-inner { max-width: 600px; margin: 0 auto; }
+  .contact-inner h2 { margin-bottom: 1rem; }
+  .contact-sub { color: rgba(248,246,240,0.5); margin-bottom: 2.5rem; font-size: 0.95rem; }
+  .contact-email {
+    display: inline-flex; align-items: center; gap: 0.75rem;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(82,183,136,0.25);
+    padding: 1rem 2rem; border-radius: 6px;
+    font-size: 0.9rem; color: var(--green-light); text-decoration: none;
+    transition: all 0.2s;
+  }
+  .contact-email:hover { background: rgba(82,183,136,0.1); border-color: var(--green-light); }
+
+  /* ESTILOS NUEVOS PARA EL CONTENEDOR DEL CÓDIGO QR */
+  .qr-container {
+    margin-top: 3rem;
+    display: inline-block;
+    background: #0A0A0A;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid rgba(201,168,76,0.25);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  .qr-title {
+    font-size: 0.75rem;
+    color: var(--gold-light);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+  }
+  .qr-image {
+    border: 4px solid var(--green-mid);
+    border-radius: 4px;
+    display: block;
+    margin: 0 auto;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: #050505; border-top: 1px solid rgba(255,255,255,0.05);
+    padding: 2rem 3rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .footer-brand {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 1.1rem;
+  }
+  .footer-brand span { color: var(--gold); }
+  .footer-copy { font-size: 0.75rem; color: rgba(248,246,240,0.3); }
+  .footer-company { font-size: 0.75rem; color: rgba(248,246,240,0.3); }
+
+  /* ── SCROLL ANIMATIONS ── */
+  .reveal {
+    opacity: 0; transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    section { padding: 5rem 1.5rem; }
+    .hero-content { grid-template-columns: 1fr; gap: 3rem; padding: 1.5rem; }
+    .hero-visual { order: -1; }
+    .how-grid { grid-template-columns: 1fr 1fr; }
+    .results-row { grid-template-columns: 1fr 1fr; }
+    .about-grid { grid-template-columns: 1fr; gap: 3rem; }
+    .team-grid { grid-template-columns: 1fr 1fr; }
+    .product-layout { grid-template-columns: 1fr; gap: 3rem; }
+    .faq-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 1rem; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <div class="nav-logo-icon">🍃</div>
+    <div class="nav-brand">Ripe<span>Sense</span>™</div>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#product">Product</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a href="#order" class="nav-cta">Order Now</a>
+</nav>
+
+<section id="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-content">
+    <div class="hero-text">
+      <div class="hero-eyebrow">FreshScan Technologies · Panama</div>
+      <h1>The <em>Cutting-Edge</em> Fruit Ripeness Scanner</h1>
+      <p class="hero-tagline">Smart Scanning Today. Less Waste Tomorrow.<br><br>Advanced ripeness detection technology analyzing fruits and vegetables in seconds — built to reduce food waste, improve quality control, and ensure only the best produce reaches customers.</p>
+      <div class="hero-actions">
+        <a href="#order" class="btn-primary">Order a Unit</a>
+        <a href="#how" class="btn-outline">See How It Works</a>
+      </div>
+      <div class="hero-badges">
+        <span class="badge">Supermarkets</span>
+        <span class="badge">Exporters</span>
+        <span class="badge">Food Markets</span>
+        <span class="badge">Distributors</span>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div style="position:relative">
+        <div class="scanner-frame">
+          <div class="scanner-screen">
+            <div class="scanner-screen-logo"><span>Ripe</span>Sense™</div>
+            <div style="font-size:0.55rem;letter-spacing:.15em;color:rgba(248,246,240,.4);text-transform:uppercase;">Place fruit in scanning area</div>
+            <div class="scanner-readout">
+              <div class="dot-un"></div>
+              <div class="dot-rd"></div>
+              <div class="dot-sr"></div>
+              <div class="dot-ov"></div>
+            </div>
+          </div>
+          <div class="scanner-bay">
+            <div class="scan-line"></div>
+            <div class="bay-fruit">🥭</div>
+          </div>
+          <div class="scanner-led-ring"></div>
+        </div>
+        <div class="scanner-stand"></div>
+        <div class="scanner-base"></div>
+        <div class="hero-stat stat-1">
+          <div class="hero-stat-num">&lt; 2s</div>
+          <div class="hero-stat-label">Scan Time</div>
+        </div>
+        <div class="hero-stat stat-2">
+          <div class="hero-stat-num">50k+</div>
+          <div class="hero-stat-label">Scan Hours</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-eyebrow">The Process</div>
+      <h2>How <em>RipeSense™</em><br>Works</h2>
+    </div>
+    <div class="how-grid reveal">
+      <div class="how-step">
+        <div class="step-num">01</div>
+        <div class="step-icon">📥</div>
+        <div class="step-title">Place</div>
+        <p class="step-desc">Place the fruit or vegetable in the illuminated scanning bay. No contact with lenses — the open-front bay keeps it clean and simple.</p>
+      </div>
+      <div class="how-step">
+        <div class="step-num">02</div>
+        <div class="step-icon">📡</div>
+        <div class="step-title">Scan</div>
+        <p class="step-desc">Advanced infrared spectroscopic sensors check both internal and external freshness indicators simultaneously.</p>
+      </div>
+      <div class="how-step">
+        <div class="step-num">03</div>
+        <div class="step-icon">⚡</div>
+        <div class="step-title">Analyze</div>
+        <p class="step-desc">The onboard Data Processing Unit evaluates color, texture, and ripeness data instantly — no internet required for core analysis.</p>
+      </div>
+      <div class="how-step">
+        <div class="step-num">04</div>
+        <div class="step-icon">📊</div>
+        <div class="step-title">Get Result</div>
+        <p class="step-desc">The 15.6" touchscreen displays an immediate color-coded readout in under 2 seconds. Act on it right away.</p>
+      </div>
+    </div>
+
+    <div class="results-row reveal">
+      <div class="result-card unripe">
+        <div class="result-dot"></div>
+        <div class="result-label">Unripe</div>
+        <div class="result-desc">Needs more time before sale or consumption.</div>
+      </div>
+      <div class="result-card ready">
+        <div class="result-dot"></div>
+        <div class="result-label">Ready</div>
+        <div class="result-desc">Firm, fresh, and perfect for immediate consumption.</div>
+      </div>
+      <div class="result-card soft">
+        <div class="result-dot"></div>
+        <div class="result-label">Soft & Ripe</div>
+        <div class="result-desc">Fully matured; ideal for blending or baking.</div>
+      </div>
+      <div class="result-card overripe">
+        <div class="result-dot"></div>
+        <div class="result-label">Overripe</div>
+        <div class="result-desc">Past peak — needs immediate removal from shelves.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-eyebrow">The Company</div>
+      <h2>About <em>FreshScan</em><br>Technologies</h2>
+    </div>
+    <div class="about-grid">
+      <div class="reveal">
+        <div class="mission-block">
+          <div class="mission-label">Our Mission</div>
+          <p class="mission-text">"To help supermarkets reduce food waste and improve produce quality through innovative ripeness detection technology."</p>
+        </div>
+        <p style="color:rgba(248,246,240,.6);font-size:.9rem;line-height:1.75;margin-bottom:1.5rem;">FreshScan Technologies develops innovative tech solutions for the food retail industry. Starting locally in Panama, we help businesses make better decisions about product freshness to reduce spoilage losses — and build a more sustainable supply chain globally.</p>
+        <div class="values-list">
+          <div class="value-item"><div class="value-bullet"></div>Innovation</div>
+          <div class="value-item"><div class="value-bullet"></div>Sustainability</div>
+          <div class="value-item"><div class="value-bullet"></div>Efficiency</div>
+          <div class="value-item"><div class="value-bullet"></div>Reliability</div>
+          <div class="value-item"><div class="value-bullet"></div>Customer Satisfaction</div>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="section-eyebrow" style="margin-bottom:1.2rem;">Leadership Team</div>
+        <div class="team-grid">
+          <div class="team-card">
+            <div class="team-initial">GV</div>
+            <div class="team-name">Gabriela Villar-Garcia</div>
+            <div class="team-role">CEO</div>
+          </div>
+          <div class="team-card">
+            <div class="team-initial">CJ</div>
+            <div class="team-name">Carlos Jaén</div>
+            <div class="team-role">CTO</div>
+          </div>
+          <div class="team-card">
+            <div class="team-initial">KZ</div>
+            <div class="team-name">Karen Alexandra Zhong</div>
+            <div class="team-role">CFO</div>
+          </div>
+          <div class="team-card">
+            <div class="team-initial">DM</div>
+            <div class="team-name">Daniel Montenegro</div>
+            <div class="team-role">CPO</div>
+          </div>
+          <div class="team-card">
+            <div class="team-initial">NV</div>
+            <div class="team-name">Nicole Vasquez</div>
+            <div class="team-role">CMO</div>
+          </div>
+          <div class="team-card" style="background:linear-gradient(135deg,rgba(27,67,50,.3),rgba(27,67,50,.1));display:flex;align-items:center;justify-content:center;">
+            <div style="font-size:.75rem;color:rgba(248,246,240,.3);text-align:center;letter-spacing:.05em;">Founded in<br>Panama 🇵🇦</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="product">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-eyebrow">The Product</div>
+      <h2>RipeSense™<br><em>E-Shop</em></h2>
+    </div>
+    <div class="product-layout">
+      <div class="reveal">
+        <div class="product-price-block">
+          <div class="price-label">Starting Price</div>
+          <div class="price-main">$4,500 <span style="font-size:1.5rem;color:var(--gold);">USD</span></div>
+          <div class="price-sub">Bulk corporate packages and custom sensor configurations available upon request, ranging from $3,000 to $6,000 per unit depending on order size.</div>
+        </div>
+        <div class="section-eyebrow" style="margin-bottom:1rem;">Technical Specifications</div>
+        <div class="specs-table">
+          <div class="spec-row"><span class="spec-key">Height</span><span class="spec-val">165 cm (5.4 ft)</span></div>
+          <div class="spec-row"><span class="spec-key">Dimensions</span><span class="spec-val">45 cm W × 40 cm D</span></div>
+          <div class="spec-row"><span class="spec-key">Weight</span><span class="spec-val">38 kg — heavy-duty anti-tipping base</span></div>
+          <div class="spec-row"><span class="spec-key">Power</span><span class="spec-val">110V – 240V AC · Eco-mode built-in</span></div>
+          <div class="spec-row"><span class="spec-key">Display</span><span class="spec-val">15.6" Full HD Vertical LED Touchscreen · Gorilla Glass</span></div>
+          <div class="spec-row"><span class="spec-key">Lighting</span><span class="spec-val">5000K Daylight-balanced LED ring</span></div>
+          <div class="spec-row"><span class="spec-key">Connectivity</span><span class="spec-val">Wi-Fi 6, Ethernet, Cellular LTE</span></div>
+          <div class="spec-row"><span class="spec-key">Sensor Life</span><span class="spec-val">50,000+ scanning hours (5–7 years)</span></div>
+        </div>
+        <div style="margin-top:2rem;padding:1.2rem;background:rgba(82,183,136,0.05);border:1px solid rgba(82,183,136,0.15);border-radius:6px;">
+          <div style="font-size:.72rem;color:var(--green-light);font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">🌍 International Shipping</div>
+          <p style="font-size:.82rem;color:rgba(248,246,240,.5);line-height:1.6;">Available for direct online purchase globally. FreshScan Technologies ships directly from Panama. Complete installation, training, and maintenance services included upon delivery.</p>
+        </div>
+      </div>
+      <div class="product-visual reveal">
+        <div class="scanner-large">
+          <div class="scanner-large-body">
+            <div class="scanner-large-screen">
+              <div class="sl-brand"><span>Ripe</span>Sense™</div>
+              <div class="sl-sub">Fruit Ripeness Scanner</div>
+              <div class="sl-result">
+                <div class="sl-result-dot"></div>
+                <div class="sl-result-text">READY — Best time to eat</div>
+              </div>
+            </div>
+            <div class="scanner-large-bay">
+              <div class="scan-line-lg"></div>
+              🍎
+            </div>
+            <div class="scanner-large-led"></div>
+          </div>
+          <div class="scanner-large-stand"></div>
+          <div class="scanner-large-base"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="order">
+  <div class="section-inner">
+    <div class="reveal" style="text-align:center;margin-bottom:0">
+      <div class="section-eyebrow">Place Your Order</div>
+      <h2>Order <em>RipeSense™</em><br>Online</h2>
+    </div>
+    <div class="order-form reveal">
+      <div class="form-header">
+        <div class="form-header-title">Corporate Purchase Form</div>
+        <div class="form-header-price">From $4,500 / unit</div>
+      </div>
+      <div class="form-body">
+        <div>
+          <div class="form-section-title">Company Information</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Company Name *</label>
+              <input type="text" placeholder="e.g. Supermercados Rey S.A."/>
+            </div>
+            <div class="form-group">
+              <label>Corporate Tax ID / Registration No.</label>
+              <input type="text" placeholder="Optional"/>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="form-section-title">Shipping & Logistics</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Country of Destination *</label>
+              <select>
+                <option value="">Select country…</option>
+                <option>Panama</option>
+                <option>United States</option>
+                <option>Colombia</option>
+                <option>Costa Rica</option>
+                <option>Mexico</option>
+                <option>Spain</option>
+                <option>United Kingdom</option>
+                <option>Germany</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>City *</label>
+              <input type="text" placeholder="City"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group full">
+              <label>Shipping Address Line 1 *</label>
+              <input type="text" placeholder="Street address"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Address Line 2 / Suite / Floor</label>
+              <input type="text" placeholder="Optional"/>
+            </div>
+            <div class="form-group">
+              <label>Postal / ZIP Code</label>
+              <input type="text" placeholder="00000"/>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="form-section-title">Order Details</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Number of RipeSense™ Units *</label>
+              <input type="number" min="1" value="1" class="qty-input" placeholder="1"/>
+            </div>
+          </div>
+          <div class="form-group full">
+            <label>Special Delivery or Installation Instructions</label>
+            <textarea placeholder="Any notes about delivery, installation site, or configuration requirements…"></textarea>
+          </div>
+        </div>
+        <button class="form-submit" onclick="alert('Thank you for your interest! Our corporate sales team will contact you within 24 hours.')">Submit Corporate Order Request</button>
+        <p class="form-note">This form submits a purchase inquiry. Our sales team will contact you within 24 hours to confirm details and pricing.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-eyebrow">Frequently Asked Questions</div>
+      <h2>Got <em>Questions?</em></h2>
+    </div>
+    <div class="faq-grid reveal">
+      <div class="faq-card">
+        <div class="faq-q">How long do the internal optical sensors last before needing replacement?</div>
+        <div class="faq-a">The advanced infrared spectroscopic sensors are built for high-traffic industrial environments with an operational lifespan of over 50,000 scanning hours — approximately 5–7 years of continuous supermarket use before requiring standard calibration service.</div>
+      </div>
+      <div class="faq-card">
+        <div class="faq-q">How should the scanning bay be cleaned and maintained?</div>
+        <div class="faq-a">Because it's a non-contact sensor system, produce never physically touches the lenses. The open rectangular bay uses food-safe, wipe-clean composite material and can be cleaned daily with a dry microfiber cloth or mild sanitizing wipe.</div>
+      </div>
+      <div class="faq-card">
+        <div class="faq-q">Does the machine require an active internet connection to function?</div>
+        <div class="faq-a">No. Core ripeness analysis algorithms run locally on the internal Data Processing Unit. An internet connection is only required for initial setup, remote diagnostics, and receiving seasonal software updates for new produce varieties.</div>
+      </div>
+      <div class="faq-card">
+        <div class="faq-q">Can the RipeSense™ scanner handle multiple types of produce at once?</div>
+        <div class="faq-a">The scanner is optimized to scan one item at a time to guarantee maximum precision and accuracy. Simply select the item type on the touchscreen, place the fruit, and receive a pinpoint result in under 2 seconds.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="contact-inner reveal">
+    <div class="section-eyebrow" style="justify-content:center;display:flex;margin-bottom:1rem;">Get in Touch</div>
+    <h2>Ready to <em>Reduce</em><br>Your Food Waste?</h2>
+    <p class="contact-sub" style="margin-top:1rem;">Have questions or want to discuss a custom corporate package? Our team is ready to help.</p>
+    
+    <a href="mailto:13041gabriela@oxford.edu.pa" class="contact-email">
+      ✉️ &nbsp;13041gabriela@oxford.edu.pa
+    </a>
+
+    <br>
+
+    <div class="qr-container">
+      <img id="dynamic-qr" src="" alt="RipeSense QR Code" class="qr-image" width="160" height="160">
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="footer-brand">Ripe<span>Sense</span>™</div>
+  <div class="footer-copy">© 2025 FreshScan Technologies. All rights reserved.</div>
+  <div class="footer-company">Founded in Panama 🇵🇦</div>
+</footer>
+
+<script>
+  // Script para autodetectar la URL real de la página y cargar el QR dinámico
+  window.addEventListener('DOMContentLoaded', () => {
+    const qrImage = document.getElementById('dynamic-qr');
+    // Toma la URL exacta donde está alojada la página web (Ej: GitHub Pages)
+    const currentUrl = window.location.href; 
+    
+    // Conectamos con un servicio gratuito de generación de QR rápido usando tus colores corporativos
+    qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(currentUrl)}&color=1B4332&bgcolor=F8F6F0`;
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+
+  // Nav active state
+  window.addEventListener('scroll', () => {
+    const nav = document.querySelector('nav');
+    if (window.scrollY > 50) {
+      nav.style.background = 'rgba(10,10,10,0.97)';
+    } else {
+      nav.style.background = 'rgba(10,10,10,0.85)';
+    }
+  });
+</script>
+</body>
+</html>
